@@ -1,0 +1,7 @@
+/target
+/logs
+/src/token.rs
+/test.json
+/test_api
+/saves.json
+/logchannel.json
