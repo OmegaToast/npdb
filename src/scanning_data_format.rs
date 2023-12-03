@@ -18,6 +18,7 @@ pub struct ScanningData {
     pub tick_rate: u32,
     pub tick_fragment: f32,
     pub production_rate: u32,
+    pub game_over: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -40,4 +41,13 @@ pub struct Star {
 pub struct Players {
     pub alias: String,
     pub war: Option<HashMap<String, i32>>,
+    pub researching: Option<String>,
+    pub cash: Option<i32>,
+    pub tech: Option<HashMap<String, Tech>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Tech {
+    pub level: i32,
+    pub research: Option<i32>,
 }

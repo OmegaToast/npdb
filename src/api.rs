@@ -7,7 +7,6 @@ pub fn to_api_data(data: String) -> ScanningData {
 }
 
 pub async fn get(game: String, code: String) -> ScanningData {
-    println!("----- Requested data for {} with {}", &game, &code);
     let mut map = HashMap::new();
     map.insert("game_number", game);
     map.insert("code", code);
@@ -24,13 +23,11 @@ pub async fn get(game: String, code: String) -> ScanningData {
 }
 
 pub fn get_next_time(api_data: ScanningData) -> u32 {
-    print!("Tick: {} & Fragment {} -> ", api_data.tick, api_data.tick_fragment);
     let mut precent: f32 = api_data.tick_fragment;
     while precent >= 1.0 {
         precent -= 1.0;
     }
     precent = 1.0-precent;
     let out = (api_data.tick_rate as f32*60.0*precent) as u32;
-    println!("next time: {}", out);
     out
 }

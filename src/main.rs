@@ -23,7 +23,7 @@ struct PlayerData {
     update: bool,
     known_attacks: Vec<(i32, i32)>,
     game_started: bool,
-    players: Option<Vec<String>>
+    players: Option<Vec<String>>,
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;

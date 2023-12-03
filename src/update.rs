@@ -41,7 +41,6 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
     logging_channel = serde_json::from_str::<GuildChannel>(&channel_str).expect("Error reading 'logchannel.json' to a GuildChannel object");
 
     loop {
-        // print!(".");
         let games_list_ref;
         match data.lock() {
             Ok(x) => games_list_ref = x.clone(),
@@ -177,18 +176,21 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
 
     // FA
     let mut friends: Vec<String> = Vec::new();
-    for (_, p) in scanning_data.players.clone() {
+    for (_, p) in scanning_data.players.clone() { // major rework needed here
         if let Some(w) = p.war {
             for f in w {
                 if f.1 == 0 {
                     friends.insert(0, f.0);
                 } else if f.1 == 1 {
-                    // TODO
+                    let friend = match scanning_data.players.get(&f.0) {
+                        Some(x) => x,
+                        None => todo!(),
+                    };
+                    output_string = format!("{}{} has requested a Formal Alliance\n", output_string, friend.alias);
                 }
             }
         }
     }
-    println!("{:?}", friends);
 
     // fleets
     let puid = scanning_data.player_uid;
@@ -215,6 +217,8 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
             }
         }
     }
+
+    // production cycle
 
     Ok((output_string, logging_string))
 }
