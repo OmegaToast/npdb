@@ -72,7 +72,10 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                     logging_string = format!("{}Requesting api data for {} with {}", logging_string, player_data_ref.game_number.clone(), player_data_ref.code.clone());
                     scanning_data = match api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await {
                         Ok(x) => x,
-                        Err(_) => return Err(CustomError::API),
+                        Err(_) => {
+                            data.lock().unwrap().remove(i);
+                            return Err(CustomError::API)
+                        },
                     }
                 },
                 false => scanning_data = player_data_ref.api.clone(),
