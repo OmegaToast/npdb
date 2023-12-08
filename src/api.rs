@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 use super::*;
 
-pub fn to_api_data(data: String) -> ScanningData {
-    let api_data: ApiData = serde_json::from_str(&data).expect("Failed to read to ApiData type");
-    api_data.scanning_data
+pub fn to_api_data(data: String) -> Result<ScanningData, ()> {
+    let api_data: ApiData = match serde_json::from_str(&data) {
+        Ok(x) => x,
+        Err(_) => return Err(()),
+    };
+    Ok(api_data.scanning_data)
 }
 
 pub async fn get(game: String, code: String) -> Result<ScanningData, ()> {
@@ -19,7 +22,7 @@ pub async fn get(game: String, code: String) -> Result<ScanningData, ()> {
     };
 
     let api_data = to_api_data(resp);
-    Ok(api_data)
+    api_data
 }
 
 pub fn get_next_time(api_data: ScanningData) -> u32 {
