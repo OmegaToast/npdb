@@ -9,7 +9,8 @@ enum CustomError {
     Time,
     Say(Error),
     Flush,
-    AsMut
+    AsMut,
+    API
 }
 
 pub async fn loop_run(data: Arc<Mutex<Vec<PlayerData>>>) {
@@ -69,7 +70,10 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
             match get_api {
                 true => {
                     logging_string = format!("{}Requesting api data for {} with {}", logging_string, player_data_ref.game_number.clone(), player_data_ref.code.clone());
-                    scanning_data = api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await
+                    scanning_data = match api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await {
+                        Ok(x) => x,
+                        Err(_) => return Err(CustomError::API),
+                    }
                 },
                 false => scanning_data = player_data_ref.api.clone(),
             }

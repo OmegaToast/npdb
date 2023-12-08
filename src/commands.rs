@@ -39,7 +39,7 @@ pub async fn start(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<()
     println!("{:?}", modal_result);
     
     // get api data
-    let scanning_data = api::get(modal_result.game_id.clone(), modal_result.api_key.clone()).await;
+    let scanning_data = api::get(modal_result.game_id.clone(), modal_result.api_key.clone()).await.unwrap();
     
     // create new private thread
     let mut json = JsonMap::new();

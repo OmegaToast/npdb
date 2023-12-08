@@ -6,7 +6,7 @@ pub fn to_api_data(data: String) -> ScanningData {
     api_data.scanning_data
 }
 
-pub async fn get(game: String, code: String) -> ScanningData {
+pub async fn get(game: String, code: String) -> Result<ScanningData, ()> {
     let mut map = HashMap::new();
     map.insert("game_number", game);
     map.insert("code", code);
@@ -19,7 +19,7 @@ pub async fn get(game: String, code: String) -> ScanningData {
     };
 
     let api_data = to_api_data(resp);
-    api_data
+    Ok(api_data)
 }
 
 pub fn get_next_time(api_data: ScanningData) -> u32 {
