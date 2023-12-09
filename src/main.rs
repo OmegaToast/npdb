@@ -17,7 +17,6 @@ enum CustomError {
     Time,
     Say(Error),
     Flush,
-    AsMut,
     API
 }
 
