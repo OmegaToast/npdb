@@ -2,17 +2,6 @@ use std::{time::Duration, fs::File, io::Read};
 
 use super::*;
 
-#[derive(Debug)]
-enum CustomError {
-    Locking,
-    Indexing,
-    Time,
-    Say(Error),
-    Flush,
-    AsMut,
-    API
-}
-
 pub async fn loop_run(data: Arc<Mutex<Vec<PlayerData>>>) {
     loop {
         match run(data.clone()).await {
@@ -70,13 +59,7 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
             match get_api {
                 true => {
                     // logging_string = format!("{}Requesting api data for {} with {}", logging_string, player_data_ref.game_number.clone(), player_data_ref.code.clone());
-                    scanning_data = match api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await {
-                        Ok(x) => x,
-                        Err(_) => {
-                            data.lock().unwrap().remove(i);
-                            return Err(CustomError::API)
-                        },
-                    }
+                    scanning_data = api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await?
                 },
                 false => scanning_data = player_data_ref.api.clone(),
             }

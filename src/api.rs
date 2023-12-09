@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use super::*;
 
-pub fn to_api_data(data: String) -> Result<ScanningData, ()> {
+pub fn to_api_data(data: String) -> Result<ScanningData, CustomError> {
     let api_data: ApiData = match serde_json::from_str(&data) {
         Ok(x) => x,
-        Err(_) => return Err(()),
+        Err(_) => return Err(CustomError::API),
     };
     Ok(api_data.scanning_data)
 }
 
-pub async fn get(game: String, code: String) -> Result<ScanningData, ()> {
+pub async fn get(game: String, code: String) -> Result<ScanningData, CustomError> {
     let mut map = HashMap::new();
     map.insert("game_number", game);
     map.insert("code", code);

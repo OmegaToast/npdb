@@ -10,6 +10,17 @@ mod update;
 mod save;
 mod token;
 
+#[derive(Debug)]
+enum CustomError {
+    Locking,
+    Indexing,
+    Time,
+    Say(Error),
+    Flush,
+    AsMut,
+    API
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PlayerData {
     code: String,
