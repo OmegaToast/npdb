@@ -48,6 +48,8 @@ struct Data {
 #[tokio::main]
 async fn main() {
 
+    save::backup();
+
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![
