@@ -141,15 +141,12 @@ fn game_not_started(player_data: &mut PlayerData, scanning_data: ScanningData) -
     // new players
     for (_, s) in scanning_data.players {
         let mut new_player = true;
-        if s.alias.is_empty() | player_data.players.clone().expect("could not find list of players").contains(&s.alias) {
+        if s.alias.is_empty() | player_data.players.clone().contains(&s.alias) {
             new_player = false;
         }
         if new_player {
             output_string = format!("{}New player, {}, just joined!\n", output_string, s.alias);
-            match player_data.players.as_mut() {
-                Some(x) => x.insert(0, s.alias.clone()),
-                None => return Err(CustomError::AsMut),
-            }
+            player_data.players.insert(0, s.alias.clone());
         }
     }
     

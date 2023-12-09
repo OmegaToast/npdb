@@ -65,14 +65,11 @@ pub async fn start(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<()
                 known_attacks: Vec::new(),
                 game_started: scanning_data.started,
                 players: {
-                    if scanning_data.started {None}
-                    else {
-                        let mut vec = Vec::new();
-                        for (_, s) in scanning_data.players.clone() {
-                            if !s.alias.is_empty() {vec.insert(0, s.alias);}
-                        }
-                        Some(vec)
+                    let mut vec = Vec::new();
+                    for (_, s) in scanning_data.players.clone() {
+                        if !s.alias.is_empty() {vec.insert(0, s.alias);}
                     }
+                    vec
                 },
             });
     }
