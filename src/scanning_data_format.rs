@@ -19,6 +19,8 @@ pub struct ScanningData {
     pub tick_fragment: f32,
     pub production_rate: u32,
     pub game_over: Option<i32>,
+    pub turn_based: Option<i32>,
+    pub turn_based_time_out: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

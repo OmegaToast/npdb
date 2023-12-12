@@ -156,6 +156,19 @@ fn game_not_started(player_data: &mut PlayerData, scanning_data: ScanningData) -
 fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Result<(String, String), CustomError> {
     let mut output_string = String::new();
     let logging_string = String::new();
+
+    // turn based
+    if let Some(x) = scanning_data.turn_based {
+        if x == 1 {
+            if let Some(x) = scanning_data.turn_based_time_out {
+                if let Some(y) = player_data.api.turn_based_time_out {
+                    if x > y {
+                        output_string = format!("{}<@{}>A turn has passed!", output_string, player_data.user_id)
+                    }
+                }
+            }
+        }
+    }
     
     // time
     player_data.time = SystemTime::now();
