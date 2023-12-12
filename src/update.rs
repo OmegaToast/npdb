@@ -160,6 +160,7 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
     // turn based
     if let Some(x) = scanning_data.turn_based {
         if x == 1 {
+            println!("{:?}, {:?}", scanning_data.turn_based_time_out, player_data.api.turn_based_time_out);
             if let Some(x) = scanning_data.turn_based_time_out {
                 if let Some(y) = player_data.api.turn_based_time_out {
                     if x > y {
