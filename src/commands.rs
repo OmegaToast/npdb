@@ -12,6 +12,7 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[derive(Debug, poise::Modal)]
+#[name = "Start Game"]
 struct GameModal {
     #[name = "API Key"]
     api_key: String,
