@@ -75,7 +75,6 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                     Some(x) => x,
                     None => return Err(CustomError::Indexing),
                 };
-                player_data.api = scanning_data.clone();
 
                 if (elapsed > player_data.next_tick_wait as u64 + 300) | &player_data.just_started | &player_data.update {
                     if !player_data.game_started { // Game still not started
@@ -92,7 +91,7 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                     }
                     // game checks
                     else {
-                        let result = match game_started(&mut player_data, scanning_data) {
+                        let result = match game_started(&mut player_data, scanning_data.clone()) {
                             Ok(x) => x,
                             Err(x) => return Err(x),
                         };
@@ -104,6 +103,7 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                 // reset vars
                 player_data.just_started = false;
                 player_data.update = false;
+                player_data.api = scanning_data;
 
                 // save
                 save::save(games_list.clone());
@@ -160,7 +160,6 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
     // turn based
     if let Some(x) = scanning_data.turn_based {
         if x == 1 {
-            println!("{:?}, {:?}", scanning_data.turn_based_time_out, player_data.api.turn_based_time_out);
             if let Some(x) = scanning_data.turn_based_time_out {
                 if let Some(y) = player_data.api.turn_based_time_out {
                     if x > y {
