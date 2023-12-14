@@ -1,4 +1,4 @@
-use std::{time::Duration, fs::File, io::Read};
+use std::time::Duration;
 
 use super::*;
 
@@ -6,16 +6,7 @@ pub async fn loop_run(data: Arc<Mutex<Vec<PlayerData>>>) {
     loop {
         match run(data.clone()).await {
             Ok(_) => todo!(),
-            Err(x) => {
-                println!("ERROR -> {:?}", x);
-                let http = Http::new(token::TOKEN);
-                let logging_channel: GuildChannel;
-                let mut file = File::open("logchannel.json").expect("Error opening 'logchannel.json'");
-                let mut channel_str = String::new();
-                file.read_to_string(&mut channel_str).expect("Error reading file 'logchannel.json'");
-                logging_channel = serde_json::from_str::<GuildChannel>(&channel_str).expect("Error reading 'logchannel.json' to a GuildChannel object");
-                logging_channel.say(&http, format!("{:?}", x)).await.expect("Well this is awkward... Error loging error");
-            },
+            Err(x) => println!("ERROR -> {:?}", x)
         }
     }
 }
@@ -23,12 +14,6 @@ pub async fn loop_run(data: Arc<Mutex<Vec<PlayerData>>>) {
 async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
 
     let http = Http::new(token::TOKEN);
-    let logging_channel: GuildChannel;
-
-    let mut file = File::open("logchannel.json").expect("Error opening 'logchannel.json'");
-    let mut channel_str = String::new();
-    file.read_to_string(&mut channel_str).expect("Error reading file 'logchannel.json'");
-    logging_channel = serde_json::from_str::<GuildChannel>(&channel_str).expect("Error reading 'logchannel.json' to a GuildChannel object");
 
     loop {
         let games_list_ref;
@@ -39,7 +24,6 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
 
         for i in 0..games_list_ref.len() {
             let mut output_string = String::new();
-            let mut logging_string = String::new();
 
             // check if api should be gotten
             let mut get_api = false;
@@ -58,7 +42,6 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
             let scanning_data: ScanningData;
             match get_api {
                 true => {
-                    // logging_string = format!("{}Requesting api data for {} with {}", logging_string, player_data_ref.game_number.clone(), player_data_ref.code.clone());
                     scanning_data = api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await?
                 },
                 false => scanning_data = player_data_ref.api.clone(),
@@ -82,8 +65,7 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                             Ok(x) => x,
                             Err(x) => return Err(x),
                         };
-                        output_string = format!("{}{}", output_string, result.0);
-                        logging_string = format!("{}{}", logging_string, result.1);
+                        output_string = format!("{}{}", output_string, result);
                         if scanning_data.started {
                             output_string = format!("{}<@{}> **Your game has started!**", output_string, player_data.user_id);
                             player_data.game_started = true;
@@ -95,8 +77,7 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                             Ok(x) => x,
                             Err(x) => return Err(x),
                         };
-                        output_string = format!("{}{}", output_string, result.0);
-                        logging_string = format!("{}{}", logging_string, result.1);
+                        output_string = format!("{}{}", output_string, result);
                     }
                 }
                 
@@ -115,12 +96,6 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                     Err(x) => return  Err(CustomError::Say(Box::new(x))),
                 }
             }
-            if !logging_string.is_empty() {
-                match logging_channel.say(&http, logging_string).await {
-                    Ok(_) => (),
-                    Err(x) => return  Err(CustomError::Say(Box::new(x))),
-                }
-            }
         }
         match std::io::Write::flush(&mut std::io::stdout()) {
             Ok(_) => (),
@@ -130,9 +105,8 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
     }
 }
 
-fn game_not_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Result<(String, String), CustomError> {
+fn game_not_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Result<String, CustomError> {
     let mut output_string = String::new();
-    let logging_string = String::new();
 
     // time
     player_data.time = SystemTime::now();
@@ -150,12 +124,11 @@ fn game_not_started(player_data: &mut PlayerData, scanning_data: ScanningData) -
         }
     }
     
-    Ok((output_string, logging_string))
+    Ok(output_string)
 }
 
-fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Result<(String, String), CustomError> {
+fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Result<String, CustomError> {
     let mut output_string = String::new();
-    let logging_string = String::new();
 
     // turn based
     if let Some(x) = scanning_data.turn_based {
@@ -220,5 +193,5 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
 
     // production cycle
 
-    Ok((output_string, logging_string))
+    Ok(output_string)
 }
