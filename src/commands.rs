@@ -114,20 +114,28 @@ pub async fn end(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<(), 
 /// Queries API and refreshes memory
 #[poise::command(slash_command)]
 pub async fn refresh(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<(), Error> {
+    let mut game = false;
     {
         // check if this is a game thread an not a real channel
         let mut games_list = ctx.data().games.lock().unwrap();
         for i in 0..games_list.len() {
             if games_list.get(i).unwrap().thread.id.0 == ctx.channel_id().0 {
+                game = true;
                 games_list.get_mut(i).unwrap().update = true;
                 games_list.get_mut(i).unwrap().known_attacks = Vec::new();
                 break;
             }
         }
     }
-    ctx.send(|u| {
-        u.content(format!("Refreshing")).ephemeral(true)
-    }).await?;
+    if game {
+        ctx.send(|u| {
+            u.content(format!("Refreshing")).ephemeral(true)
+        }).await?;
+    } else {
+        ctx.send(|u| {
+            u.content(format!("This is not a valid game")).ephemeral(true)
+        }).await?;
+    }
 
 
     Ok(())
