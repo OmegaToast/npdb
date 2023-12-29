@@ -27,15 +27,9 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
 
             // check if api should be gotten
             let mut get_api = false;
-            let player_data_ref = match games_list_ref.get(i) {
-                Some(x) => x,
-                None => return Err(CustomError::Indexing),
-            };
-            let elapsed = match player_data_ref.time.elapsed() {
-                Ok(x) => x.as_secs(),
-                Err(_) => return Err(CustomError::Time),
-            };
-            if (elapsed > player_data_ref.next_tick_wait as u64 + 300) | &player_data_ref.update {get_api=true;}
+            let player_data_ref = games_list_ref.get(i).ok_or_else(|| {CustomError::Indexing})?;
+            let elapsed = player_data_ref.time.elapsed().or_else(|_| {Err(CustomError::Locking)})?;
+            if (elapsed.as_secs() > player_data_ref.next_tick_wait as u64 + 300) | &player_data_ref.update {get_api=true;}
             if player_data_ref.just_started {get_api = false;} // api was gotten already for making the thread
 
             // gotting the api
@@ -50,34 +44,19 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
             // main logic
             {
                 // lock the mutex
-                let mut games_list = match data.lock() {
-                    Ok(x) => x,
-                    Err(_) => return Err(CustomError::Locking),
-                };
-                let mut player_data = match games_list.get_mut(i) {
-                    Some(x) => x,
-                    None => return Err(CustomError::Indexing),
-                };
+                let mut games_list = data.lock().or_else(|_| {Err(CustomError::Locking)})?;
+                let mut player_data = games_list.get_mut(i).ok_or_else(|| {CustomError::Indexing})?;
 
-                if (elapsed > player_data.next_tick_wait as u64 + 300) | &player_data.just_started | &player_data.update {
+                if (elapsed.as_secs() > player_data.next_tick_wait as u64 + 300) | &player_data.just_started | &player_data.update {
                     if !player_data.game_started { // Game still not started
-                        let result = match game_not_started(&mut player_data, scanning_data.clone()) {
-                            Ok(x) => x,
-                            Err(x) => return Err(x),
-                        };
-                        output_string = format!("{}{}", output_string, result);
-                        if scanning_data.started {
-                            output_string = format!("{}<@{}> **Your game has started!**", output_string, player_data.user_id);
-                            player_data.game_started = true;
-                        }
+                        let result = game_not_started(&mut player_data, scanning_data.clone())?;
+                        output_string += &result;
+                        
                     }
                     // game checks
                     else {
-                        let result = match game_started(&mut player_data, scanning_data.clone()) {
-                            Ok(x) => x,
-                            Err(x) => return Err(x),
-                        };
-                        output_string = format!("{}{}", output_string, result);
+                        let result = game_started(&mut player_data, scanning_data.clone())?;
+                        output_string += &result;
                     }
                 }
                 
@@ -119,9 +98,15 @@ fn game_not_started(player_data: &mut PlayerData, scanning_data: ScanningData) -
             new_player = false;
         }
         if new_player {
-            output_string = format!("{}New player, {}, just joined!\n", output_string, s.alias);
+            output_string += &format!("New player, {}, just joined!\n", s.alias);
             player_data.players.insert(0, s.alias.clone());
         }
+    }
+
+    // game start
+    if scanning_data.started {
+        output_string += &format!("<@{}> **Your game has started!**\n", player_data.user_id);
+        player_data.game_started = true;
     }
     
     Ok(output_string)
@@ -136,7 +121,7 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
             if let Some(x) = scanning_data.turn_based_time_out {
                 if let Some(y) = player_data.api.turn_based_time_out {
                     if x > y {
-                        output_string = format!("{}<@{}>A turn has passed!", output_string, player_data.user_id)
+                        output_string += &format!("<@{}>A turn has passed!\n", player_data.user_id)
                     }
                 }
             }
@@ -159,7 +144,7 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
                         Some(x) => x,
                         None => todo!(),
                     };
-                    output_string = format!("{}{} has requested a Formal Alliance\n", output_string, friend.alias);
+                    output_string += &format!("{} has requested a Formal Alliance\n", friend.alias);
                 }
             }
         }
@@ -184,7 +169,7 @@ fn game_started(player_data: &mut PlayerData, scanning_data: ScanningData) -> Re
                         Some(x) => &x.alias,
                         None => return Err(CustomError::Indexing),
                     };
-                    output_string = format!("{}<@{}> Tick:{} **You are under attack by {} on {}**\n", output_string, player_data.user_id, scanning_data.tick, attacker_name, star.n);
+                    output_string += &format!("<@{}> Tick:{} **You are under attack by {} on {}**\n", player_data.user_id, scanning_data.tick, attacker_name, star.n);
                     player_data.known_attacks.insert(0, (carrier.uid, star.uid));
                 }
             }
