@@ -14,7 +14,6 @@ mod token;
 enum CustomError {
     Locking,
     Indexing,
-    Time,
     Say(Error),
     Flush,
     API
