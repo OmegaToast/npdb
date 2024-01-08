@@ -86,13 +86,13 @@ pub async fn start(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<()
 pub async fn end(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<(), Error> {
     // create http referance
     let http = Http::new(token::TOKEN);
-    let current_thread = ctx.guild_channel().await.unwrap();
+    let current_thread = ctx.channel_id();
     let mut delete: bool = false;
     {
         // check if this is a game thread an not a real channel
         let mut games_list = ctx.data().games.lock().unwrap();
         for i in 0..games_list.len() {
-            if games_list.get(i).unwrap().thread.id.0 == current_thread.id.0 {
+            if games_list.get(i).unwrap().thread.id.0 == current_thread.0 {
                 games_list.remove(i);
                 delete = true;
                 break;
@@ -100,7 +100,7 @@ pub async fn end(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<(), 
         }
     }
     if delete {
-        http.delete_channel(current_thread.id.0).await?;
+        http.delete_channel(current_thread.0).await?;
     }
     else {
         ctx.send(|u| {
@@ -148,24 +148,26 @@ pub async fn change_key(
     #[description = "API Code"]
     api: String,
 ) -> Result<(), Error> {
+    let mut changed = false;
     {
         // check if this is a game thread an not a real channel
         let mut games_list = ctx.data().games.lock().unwrap();
         for i in 0..games_list.len() {
             if games_list.get(i).unwrap().thread.id.0 == ctx.channel_id().0 {
                 games_list.get_mut(i).unwrap().code = api;
+                changed = true;
                 break;
             }
         }
     }
-    ctx.send(|u| {
-        u.content(format!("Succesfully changed API key")).ephemeral(true)
-    }).await?;
-    Ok(())
-}
-
-#[poise::command(slash_command)]
-pub async fn get_channel(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<(), Error> {
-    println!("{}", serde_json::to_string(&ctx.guild_channel().await.unwrap()).unwrap());
+    if changed {
+        ctx.send(|u| {
+            u.content(format!("Succesfully changed API key")).ephemeral(true)
+        }).await?;
+    } else {
+        ctx.send(|u| {
+            u.content(format!("This is not a valid game")).ephemeral(true)
+        }).await?;
+    }
     Ok(())
 }

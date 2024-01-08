@@ -56,7 +56,6 @@ async fn main() {
                 commands::start(),
                 commands::end(),
                 commands::refresh(),
-                commands::get_channel(),
                 commands::change_key(),
                 ],
             pre_command: |ctx| {
