@@ -39,6 +39,7 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
                     scanning_data = match api::get(player_data_ref.game_number.clone(), player_data_ref.code.clone()).await {
                         Ok(x) => x,
                         Err(_) => {
+                            let _ = http.delete_channel(player_data_ref.thread.id.0).await;
                             data.lock().unwrap().remove(i);
                             return Err(CustomError::API)
                         },
