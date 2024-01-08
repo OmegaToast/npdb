@@ -78,7 +78,10 @@ async fn run(data: Arc<Mutex<Vec<PlayerData>>>) -> Result<(), CustomError> {
             if !output_string.is_empty() {
                 match player_data_ref.thread.say(&http, output_string).await {
                     Ok(_) => (),
-                    Err(x) => return  Err(CustomError::Say(Box::new(x))),
+                    Err(x) => {
+                        data.lock().unwrap().remove(i);
+                        return  Err(CustomError::Say(Box::new(x)))
+                    },
                 }
             }
         }
