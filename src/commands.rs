@@ -78,6 +78,8 @@ pub async fn start(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<()
     // print data
     channel_id.say(&http, format!("Watching game: **{}**", scanning_data.name.clone())).await?;
 
+    save::backup();
+
     Ok(())
 }
 
@@ -107,6 +109,8 @@ pub async fn end(ctx: poise::ApplicationContext<'_, Data, Error>) -> Result<(), 
             u.content(format!("You cannot delete this channel. If you think this is a mistake, please contact the owner of this bot.")).ephemeral(true)
         }).await?;
     }
+
+    save::backup();
 
     Ok(())
 }
@@ -169,5 +173,8 @@ pub async fn change_key(
             u.content(format!("This is not a valid game")).ephemeral(true)
         }).await?;
     }
+
+    save::backup();
+
     Ok(())
 }
